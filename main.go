@@ -9,27 +9,27 @@ import (
 func main() {
 	fmt.Println("Организация круга событий в Go")
 
-	userEvents := make(chan string, 10)
-	systemEvents := make(chan string, 10)
-	timerEvents := make(chan string, 10)
-	shutdown := make(chan struct{})
+	usrEvents := make(chan string, 10) // Создание канала пользовательских событий
+	stmEvents := make(chan string, 10) //Создание канала системных событий
+	tmrEvents := make(chan string, 10) //Канал событий тайминга
+	destroy := make(chan struct{})     //Канал для событий закртия программы
 
-	go userEventProducer(userEvents)
-	go systemEventProducer(systemEvents)
-	go timerEventProducer(timerEvents)
+	go userEventProducer(usrEvents)   //Создать пользовательские события
+	go systemEventProducer(stmEvents) //Создать системные события
+	go timerEventProducer(tmrEvents)  //Создать события по таймингу
 
-	go eventLoop(userEvents, systemEvents, timerEvents, shutdown)
+	go eventCatch(usrEvents, stmEvents, tmrEvents, destroy) //Поймать ошибку
 
 	time.Sleep(5 * time.Second)
 
 	fmt.Println("Закрытие круга событий")
-	close(shutdown)
+	close(destroy)
 
 	time.Sleep(500 * time.Millisecond)
 	fmt.Println("Круг событий завершён")
 }
 
-func eventLoop(userEvents, systemEvents, timerEvents <-chan string, shutdown <-chan struct{}) {
+func eventCatch(userEvents, systemEvents, timerEvents <-chan string, shutdown <-chan struct{}) {
 	fmt.Println("Цикл событий начался...")
 	for {
 		select {
