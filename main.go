@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func RunEventsLoop() {
+func main() {
 	fmt.Println("Организация круга событий в Go")
 
 	userEvents := make(chan string, 10)
@@ -39,7 +39,14 @@ func eventLoop(userEvents, systemEvents, timerEvents <-chan string, shutdown <-c
 		case event := <-systemEvents:
 			fmt.Printf("Обработка системного события: %s\n", event)
 			processSystemEvent(event)
+		case event := <-timerEvents:
+			fmt.Printf("Обработка событий тайминга: %s\n", event)
+			processTimerEvent(event)
+		case <-shutdown:
+			fmt.Println("Событие закртытия получено")
+			return
 		}
+
 	}
 }
 
@@ -73,4 +80,19 @@ func timerEventProducer(events chan<- string) {
 		events <- fmt.Sprintf("Процесс тайминга (timer_%d)", count+1)
 		count++
 	}
+}
+
+func processUserEvent(event string) {
+	time.Sleep(100 * time.Millisecond)
+	fmt.Printf("   -> Пользовательское событие обработано: %s\n", event)
+}
+
+func processSystemEvent(event string) {
+	time.Sleep(100 * time.Millisecond)
+	fmt.Printf("   -> Системное событие обработано: %s\n", event)
+}
+
+func processTimerEvent(event string) {
+	time.Sleep(50 * time.Millisecond)
+	fmt.Printf("   -> Событие таймера обработано: %s\n", event)
 }
